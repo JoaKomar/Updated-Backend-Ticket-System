@@ -11,7 +11,7 @@ class Users(Base):
     edad = Column(Integer, nullable=False)
     email = Column(String(150),nullable=False,unique=True)
     password_hash = Column(String)
-    rol = Column(String(20),default="user")
+    role = Column(String(20),default="user")
     deleted = Column(Boolean,default=False)
 
     tickets = relationship("Tickets", back_populates="user")
