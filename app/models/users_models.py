@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, String, Integer
+from sqlalchemy import Boolean, Column, String, Integer, ForeignKey
 from app.database.database import Base
 from sqlalchemy.orm import relationship
 
@@ -7,10 +7,10 @@ class Users(Base):
     __tablename__ = "users"
 
     id = Column(Integer,primary_key=True)
-    nombre = Column(String(100), nullable=False)
-    edad = Column(Integer, nullable=False)
+    name = Column(String(100), nullable=False)
+    age = Column(Integer, nullable=False)
     email = Column(String(150),nullable=False,unique=True)
-    password_hash = Column(String)
+    password_hash = Column(String(100))
     role = Column(String(20),default="user")
     deleted = Column(Boolean,default=False)
 

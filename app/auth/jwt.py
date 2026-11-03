@@ -5,7 +5,7 @@ import bcrypt
 from app.models.users_models import Users
 from datetime import datetime, timedelta,timezone
 from app.config.config import ALGORITHM, SECRET_KEY_TOKEN
-from app.database.database import get_db
+from app.database.database import get_db, Session
 
 
 oauth_scheme = OAuth2PasswordBearer(tokenUrl="/login/user")
@@ -14,7 +14,7 @@ def create_token(user: Users):
 
     expire = datetime.now(timezone.utc) + timedelta(days=3)
 
-    payload = {"sub" : user.id,
+    payload = {"sub" : str(user.id),
                "exp" : expire}
 
     token = jwt.encode(payload,
@@ -43,7 +43,7 @@ def verify_password(password: str,hashed:str):
     return bcrypt.checkpw(password.encode(), hashed.encode())
 
 
-def get_current_user(token: str = Depends(oauth_scheme), db: str = Depends(get_db)):
+def get_current_user(token: str = Depends(oauth_scheme), db: Session = Depends(get_db)):
 
     payload = verify_token(token)
 
@@ -55,9 +55,11 @@ def get_current_user(token: str = Depends(oauth_scheme), db: str = Depends(get_d
         raise HTTPException(status_code=404,
         detail="Not found")
 
+
     if user.deleted is True:
         raise HTTPException(status_code=403,
         detail="Not authorized")
+    
 
     return user
 

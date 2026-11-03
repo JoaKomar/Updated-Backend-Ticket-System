@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 from enum import Enum
 
-class TicketStatus(BaseModel, Enum):
+class TicketStatus(str,Enum):
     pending = "pending"
     in_process = "in_process"
     completed = "completed"
@@ -9,8 +9,8 @@ class TicketStatus(BaseModel, Enum):
 class TicketUser(BaseModel):
     title: str = Field(min_length=3,max_length=30)
     description: str = Field(min_length=15,max_length=500)
-    status: TicketStatus
-    date: str
+    status: TicketStatus = Field(default=TicketStatus.pending)
+  
 
 
 class TicketAdmin(BaseModel):
@@ -19,4 +19,4 @@ class TicketAdmin(BaseModel):
     description: str = Field(min_length=15,max_length=500)
     status: TicketStatus
     deleted: bool
-    date: str
+
