@@ -7,6 +7,7 @@ from app.schemas.tickets_schemas import TicketUser
 from app.schemas.users_schemas import Profile
 from sqlalchemy import func, or_
 from app.exceptions.exceptions import TicketNotFound
+from app.services.services import search_ticket, check_properties, today_datetime, deleted_ticket
 
 router = APIRouter(prefix="/tickets")
 
@@ -43,14 +44,49 @@ async def view_ticket(ticket_id:int,
                        user: Users = Depends(get_current_user),
                        db: Session = Depends(get_db)):
 
-    search_ticket = db.query(Tickets).filter(or_(Tickets.id == ticket_id,
-                                           func.lower(title) == func.lower(Tickets.title))).first()
+   founded_ticket = search_ticket(db,ticket_id,title)
+
+   if deleted_ticket(founded_ticket):
+       raise TicketNotFound
+   
+   checked_ticket = check_properties(founded_ticket,user)
+
+   if not checked_ticket:
+       raise TicketNotFound
+
+   return founded_ticket
 
 
-    if search_ticket is None:
+
+@router.put("/{ticket_id}")
+async def update_ticket(ticket_id: int,
+                        ticket: TicketUser,
+                        title: str | None = None,
+                        user: Users = Depends(get_current_user),
+                        db: Session = Depends(get_db)):
+
+    founded_ticket = search_ticket(db,ticket_id,title)
+
+    if deleted_ticket(founded_ticket):
+       raise TicketNotFound
+
+    checked_ticket = check_properties(founded_ticket,user)
+
+    if not checked_ticket:
         raise TicketNotFound
 
-    if user.role != "admin" and user.id != search_ticket.user_id:
-        raise TicketNotFound
+    founded_ticket.title = ticket.title
+    founded_ticket.description = ticket.description
+    founded_ticket.status = ticket.status
+    founded_ticket.date = today_datetime()
 
-    return search_ticket
+    db.commit()
+    db.refresh(founded_ticket)
+
+    return {"content" : "your ticket has been successfully updated"} 
+
+
+    
+
+
+
