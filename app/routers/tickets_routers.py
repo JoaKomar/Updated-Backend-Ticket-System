@@ -5,7 +5,6 @@ from app.models.users_models import Users
 from app.models.tickets_models import Tickets
 from app.schemas.tickets_schemas import TicketUser
 from app.schemas.users_schemas import Profile
-from sqlalchemy import func, or_
 from app.exceptions.exceptions import TicketNotFound
 from app.services.services import search_ticket, check_properties, today_datetime, deleted_ticket
 
@@ -84,9 +83,6 @@ async def update_ticket(ticket_id: int,
     db.refresh(founded_ticket)
 
     return {"content" : "your ticket has been successfully updated"} 
-
-
-    
 
 
 
