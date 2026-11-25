@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
-from app.auth.jwt import get_current_user
+from app.auth.jwt import get_current_user, get_current_admin
 from app.database.database import get_db, Session
 from app.models.users_models import Users
 from app.models.tickets_models import Tickets
@@ -85,4 +85,17 @@ async def update_ticket(ticket_id: int,
     return {"content" : "your ticket has been successfully updated"} 
 
 
+@router.delete("/{ticket_id}")
+async def delete_ticket(ticket_id: int,
+                        admin: Users = Depends(get_current_admin),
+                        db: Session = Depends(get_db)):
+
+    ticket = search_ticket(db,ticket_id)
+
+    ticket.status = True
+
+    db.commit()
+    db.refresh(ticket)
+
+    return {"detail" : "the ticket has been successfully deleted"}
 

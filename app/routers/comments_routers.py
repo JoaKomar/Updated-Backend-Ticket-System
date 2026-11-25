@@ -33,7 +33,7 @@ async def create_comments(ticket_id:int,
     db.commit()
     db.refresh(new_comment)
 
-    return {"details" : "your comment has been added"}
+    return {"details" : "your comment has been successfully added"}
 
 @router.get("/{comment_id}")
 async def view_comments(comment_id:int,
@@ -75,7 +75,8 @@ async def update_comment(comment_id: int,
     db.commit()
     db.refresh(searched)
 
-    return {"detail" : "your comment has been updated"}
+
+    return {"content" : "your comment has been successfully updated"} 
 
 
 @router.delete("/{comment_id}")
@@ -83,11 +84,11 @@ async def delete_comment(comment_id:int,
                          admin: Users = Depends(get_current_admin),
                          db: Session = Depends(get_db)):
 
-    searched = search_comment(db,comment_id)
+    comment = search_comment(db,comment_id)
 
-    searched.deleted = True
+    comment.deleted = True
 
     db.commit()
-    db.refresh(searched)
+    db.refresh(comment)
 
-    return {"detail" : "the ticket has been successfully deleted"}
+    return {"detail" : "the comment has been successfully deleted"}
