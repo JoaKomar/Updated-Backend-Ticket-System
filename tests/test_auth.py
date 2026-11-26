@@ -115,7 +115,7 @@ def test_register_unprocessable_content():
 
 
 def test_login_unprocessable_content():
-    response = client.post("/auth/register", json={"email" : "test@gmail.com",
+    response = client.post("/auth/login", json={"email" : "test@gmail.com",
                                                    "password" : "123456"})
 
     assert response.status_code == 422
@@ -125,7 +125,7 @@ def test_not_found_user():
     response = client.post("/auth/login", json={"email" : f"test{str(uuid.uuid4())[:8]}@gmail.com",
                                                 "password" : "12345678"})
 
-    assert response.status_code == 404
+    assert response.status_code == 401
 
 
 def test_invalid_password(user):
@@ -145,4 +145,13 @@ def test_valid_token(user):
     assert token is not None
 
 
-    
+def test_deleted_user(user,db):
+    user.deleted = True
+
+    db.commit()
+    db.refresh(user)
+
+    response = client.post("/auth/login", json={"email" : user.email,
+                                                "password" : "12345678"})
+
+    assert response.status_code == 401

@@ -10,8 +10,7 @@ class Comments(Base):
     id = Column(Integer,primary_key=True)
     content = Column(String(200), nullable=False)
     deleted = Column(Boolean, default=False)
-    date = Column(DateTime, nullable=False, default=datetime.now(timezone.utc).replace(microsecond=0))
-
+    date = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
     user = relationship("Users", back_populates="comments")
     ticket = relationship("Tickets", back_populates="comments")
 

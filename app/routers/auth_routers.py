@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from app.schemas.users_schemas import RegisterUser, LoginUser
-from app.database.database import get_db
+from app.database.database import get_db, Session
 from app.auth.jwt import verify_password,hash_password, create_token
 from app.models.users_models import Users
 
@@ -9,7 +9,7 @@ router = APIRouter(prefix="/auth")
 
 
 @router.post("/register")
-async def register_user(user: RegisterUser,db: str = Depends(get_db)):
+async def register_user(user: RegisterUser,db: Session = Depends(get_db)):
 
     already_exists = db.query(Users).filter(Users.email == user.email).first()
 
@@ -30,16 +30,20 @@ async def register_user(user: RegisterUser,db: str = Depends(get_db)):
     db.commit()
     db.refresh(new_user)
 
-    return {"user created correctly"}
+    return {"detail" : "user created correctly"}
 
 @router.post("/login")
-async def login_user(user: LoginUser,db: str = Depends(get_db)):
+async def login_user(user: LoginUser,db: Session = Depends(get_db)):
 
     searched_user = db.query(Users).filter(Users.email == user.email).first()
 
-    if searched_user is None:
-        raise HTTPException(status_code=404,detail="User Not Found")
 
+    if searched_user is None:
+        raise HTTPException(status_code=401,detail="User Not Found")
+
+    if searched_user.deleted == True:
+        raise HTTPException(status_code=401, detail="Deleted user")
+    
     verify = verify_password(user.password, searched_user.password_hash)
 
     if not verify:

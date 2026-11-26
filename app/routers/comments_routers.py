@@ -8,7 +8,7 @@ from app.schemas.comments_schemas import CommentsUser
 from app.schemas.tickets_schemas import TicketUser
 from app.schemas.users_schemas import Profile
 from app.exceptions.exceptions import CommentNotFound
-from app.services.services import search_ticket,search_comment, check_properties, today_datetime, deleted_ticket
+from app.services.services import search_comment, today_datetime, deleted_ticket
 
 
 router = APIRouter(prefix="/comments")
@@ -20,7 +20,7 @@ async def create_comments(ticket_id:int,
                         user: Users = Depends(get_current_user), 
                         db: Session = Depends(get_db)):
 
-    searched = search_ticket(db,ticket_id)
+    searched = search_comment(db,ticket_id)
 
     if user.role != "admin":
         if searched.user_id != user.id:
@@ -45,8 +45,8 @@ async def view_comments(comment_id:int,
 
     if user.role != "admin":
 
-        if searched.deleted == True:
-            raise HTTPException(status_code=404,detail="Not Found")
+        if deleted_ticket(searched):
+            raise CommentNotFound
         
         if searched.ticket.user_id != user.id: 
             raise HTTPException(status_code=404, detail="Not Found")
@@ -65,6 +65,9 @@ async def update_comment(comment_id: int,
                          db: Session = Depends(get_db)):
 
     searched = search_comment(db,comment_id)
+
+    if deleted_ticket(searched):
+                raise CommentNotFound
 
     if user.role != "admin":
         if searched.user_id != user.id:

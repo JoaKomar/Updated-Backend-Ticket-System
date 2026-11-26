@@ -1,6 +1,6 @@
 from jose import jwt, JWTError
 from fastapi import HTTPException, Depends
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 import bcrypt
 from app.models.users_models import Users
 from datetime import datetime, timedelta,timezone
@@ -8,20 +8,25 @@ from app.config.config import ALGORITHM, SECRET_KEY_TOKEN
 from app.database.database import get_db, Session
 
 
-oauth_scheme = OAuth2PasswordBearer(tokenUrl="/login/user")
+bearer_scheme = HTTPBearer()
 
 def create_token(user: Users):
 
     expire = datetime.now(timezone.utc) + timedelta(days=3)
-
-    payload = {"sub" : str(user.id),
+    try:
+        payload = {"sub" : str(user.id),
                "exp" : expire}
 
-    token = jwt.encode(payload,
+        token = jwt.encode(payload,
                        SECRET_KEY_TOKEN,
                        algorithm=ALGORITHM)
 
-    return token
+        return token
+    except:
+        raise HTTPException(status_code=401,
+                    detail="Invalid authorization",
+                    headers={"WWW-Authenticate": "Bearer"})
+    
 
 
 def verify_token(token):
@@ -31,7 +36,7 @@ def verify_token(token):
                              SECRET_KEY_TOKEN,
                              algorithms=[ALGORITHM])
     except JWTError:
-        raise HTTPException(status_code=409,detail="Invalid authorization")
+        raise HTTPException(status_code=401,detail="Invalid authorization")
     return payload
 
 
@@ -43,9 +48,10 @@ def verify_password(password: str,hashed:str):
     return bcrypt.checkpw(password.encode(), hashed.encode())
 
 
-def get_current_user(token: str = Depends(oauth_scheme), db: Session = Depends(get_db)):
+def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+                      db: Session = Depends(get_db)):
 
-    payload = verify_token(token)
+    payload = verify_token(credentials.credentials)
 
     user_id = int(payload["sub"])    
 
@@ -64,7 +70,7 @@ def get_current_user(token: str = Depends(oauth_scheme), db: Session = Depends(g
     return user
 
 def get_current_admin(user: Users = Depends(get_current_user)):
-    if user.role == "user":
+    if user.role != "admin":
         raise HTTPException(status_code=403,
         detail="Not authorized")
     return user

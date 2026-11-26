@@ -6,7 +6,7 @@ from app.models.tickets_models import Tickets
 from app.schemas.tickets_schemas import TicketUser
 from app.schemas.users_schemas import Profile
 from app.exceptions.exceptions import TicketNotFound
-from app.services.services import search_ticket, check_properties, today_datetime, deleted_ticket
+from app.services.services import list_tickets,get_ticket_or_404, today_datetime, deleted_ticket
 
 router = APIRouter(prefix="/tickets")
 
@@ -39,20 +39,17 @@ async def create_ticket(ticket: TicketUser,
 
 @router.get("/{ticket_id}")
 async def view_ticket(ticket_id:int,
-                      title: str | None = None, 
+                      title: str | None = None,
+                      offset: int | None = None,
+                      limit: int | None = None,
                        user: Users = Depends(get_current_user),
                        db: Session = Depends(get_db)):
 
-   founded_ticket = search_ticket(db,ticket_id,title)
+   founded_ticket = list_tickets(db,user,title,offset,limit)
 
-   if deleted_ticket(founded_ticket):
+   if not founded_ticket:
        raise TicketNotFound
-   
-   checked_ticket = check_properties(founded_ticket,user)
-
-   if not checked_ticket:
-       raise TicketNotFound
-
+    
    return founded_ticket
 
 
@@ -60,19 +57,13 @@ async def view_ticket(ticket_id:int,
 @router.put("/{ticket_id}")
 async def update_ticket(ticket_id: int,
                         ticket: TicketUser,
-                        title: str | None = None,
                         user: Users = Depends(get_current_user),
                         db: Session = Depends(get_db)):
 
-    founded_ticket = search_ticket(db,ticket_id,title)
+    founded_ticket = get_ticket_or_404(db,ticket_id)
 
-    if deleted_ticket(founded_ticket):
+    if not founded_ticket:
        raise TicketNotFound
-
-    checked_ticket = check_properties(founded_ticket,user)
-
-    if not checked_ticket:
-        raise TicketNotFound
 
     founded_ticket.title = ticket.title
     founded_ticket.description = ticket.description
@@ -90,9 +81,9 @@ async def delete_ticket(ticket_id: int,
                         admin: Users = Depends(get_current_admin),
                         db: Session = Depends(get_db)):
 
-    ticket = search_ticket(db,ticket_id)
+    ticket = get_ticket_or_404(db,ticket_id)
 
-    ticket.status = True
+    ticket.deleted = True
 
     db.commit()
     db.refresh(ticket)

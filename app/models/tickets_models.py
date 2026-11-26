@@ -11,7 +11,7 @@ class Tickets(Base):
     description = Column(String(400), nullable=False)
     status = Column(String(150), default="pending")
     deleted = Column(Boolean, default=False)
-    date = Column(DateTime, nullable=False, default=datetime.now(timezone.utc).replace(microsecond=0))
+    date = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
 
     user = relationship("Users", back_populates="tickets")
     comments = relationship("Comments", back_populates="ticket")
