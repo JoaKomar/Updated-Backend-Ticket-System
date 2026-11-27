@@ -99,3 +99,25 @@ def test_delete_ticket(create_ticket,admin_auth_header):
                              headers=admin_auth_header)
 
     assert response.status_code == 200
+
+def test_delete_view_ticket(db,create_ticket,user_auth_header):
+    create_ticket.deleted = True
+    db.commit()
+    db.refresh(create_ticket)
+
+    response = client.get(f"/ticket/{create_ticket.id}",
+                          headers=user_auth_header)
+
+    assert response.status_code == 404
+
+
+def test_delete_update_ticket(db,create_ticket,user_auth_header):
+    create_ticket.deleted = True
+    db.commit()
+    db.refresh(create_ticket)
+
+    response = client.put(f"/ticket/{create_ticket.id}",
+                          json={"content" : "example"},
+                          headers=user_auth_header)
+
+    assert response.status_code == 404

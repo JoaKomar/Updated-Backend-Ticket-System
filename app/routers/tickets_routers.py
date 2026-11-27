@@ -59,11 +59,12 @@ async def view_ticket(ticket_id:int,
     
     founded_ticket = get_ticket_or_404(db, ticket_id)
 
+    if not founded_ticket:
+        raise TicketNotFound
+
     if user.role != "admin" and founded_ticket.user_id != user.id:
         raise TicketNotFound
 
-    if not founded_ticket:
-        raise TicketNotFound
 
     return founded_ticket
 
@@ -78,11 +79,12 @@ async def update_ticket(ticket_id: int,
 
     founded_ticket = get_ticket_or_404(db,ticket_id)
 
+    if not founded_ticket:
+       raise TicketNotFound
+
     if user.role != "admin" and founded_ticket.user_id != user.id:
         raise TicketNotFound
     
-    if not founded_ticket:
-       raise TicketNotFound
 
     founded_ticket.title = ticket.title
     founded_ticket.description = ticket.description
