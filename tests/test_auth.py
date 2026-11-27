@@ -39,8 +39,39 @@ def user(db):
         db.delete(new_user)
         db.commit()
 
+@pytest.fixture
+def another_user(db):
+    hashed = hash_password("12345678")
+    
+    new_user = Users(name="test",
+                         age=30,
+                         email=f"test{str(uuid.uuid4())[:8]}@gmail.com",
+                         password_hash=hashed)
+    
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    try:
+        yield new_user
+
+    finally:
+        db.delete(new_user)
+        db.commit()
+
+@pytest.fixture
+def another_user_auth_header(another_user):
+
+    login = client.post("/auth/login",
+                        json={"email" : another_user.email,
+                              "password" : "12345678"})
+
+    token = login.json()["access_token"]
+
+    return {"Authorization" : f"Bearer {token}"}
 
 
+    
 
 @pytest.fixture
 def admin(db):

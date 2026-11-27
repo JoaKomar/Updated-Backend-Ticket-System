@@ -37,20 +37,33 @@ async def create_ticket(ticket: TicketUser,
             "from" : user.name,
             "date" : new_ticket.date}
 
-@router.get("/{ticket_id}")
-async def view_ticket(ticket_id:int,
-                      title: str | None = None,
+@router.get("/")
+async def view_tickets(title: str | None = None,
                       offset: int | None = None,
                       limit: int | None = None,
                        user: Users = Depends(get_current_user),
                        db: Session = Depends(get_db)):
-
+    
    founded_ticket = list_tickets(db,user,title,offset,limit)
 
    if not founded_ticket:
        raise TicketNotFound
     
    return founded_ticket
+
+@router.get("/{ticket_id}")
+async def view_ticket(ticket_id:int,
+                      db: Session = Depends(get_db),
+                      user: Users = Depends(get_current_user)):
+
+    
+    founded_ticket = get_ticket_or_404(db, ticket_id)
+
+    if not founded_ticket:
+        raise TicketNotFound
+
+    return founded_ticket
+
 
 
 

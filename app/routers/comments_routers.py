@@ -8,7 +8,7 @@ from app.schemas.comments_schemas import CommentsUser
 from app.schemas.tickets_schemas import TicketUser
 from app.schemas.users_schemas import Profile
 from app.exceptions.exceptions import CommentNotFound
-from app.services.services import search_comment, today_datetime, deleted_ticket
+from app.services.services import search_comment,get_ticket_or_404, today_datetime, deleted_ticket
 
 
 router = APIRouter(prefix="/comments")
@@ -20,7 +20,10 @@ async def create_comments(ticket_id:int,
                         user: Users = Depends(get_current_user), 
                         db: Session = Depends(get_db)):
 
-    searched = search_comment(db,ticket_id)
+    searched = get_ticket_or_404(db,ticket_id)
+
+    if searched.deleted == True:
+         raise HTTPException(status_code=404,detail="Not Found")
 
     if user.role != "admin":
         if searched.user_id != user.id:
@@ -33,10 +36,14 @@ async def create_comments(ticket_id:int,
     db.commit()
     db.refresh(new_comment)
 
-    return {"details" : "your comment has been successfully added"}
+    return {"details" : "your comment has been successfully added",
+            "id" : new_comment.id,
+            "content" : new_comment.content}
+
+
 
 @router.get("/{comment_id}")
-async def view_comments(comment_id:int,
+async def view_comment(comment_id:int,
                         user: Users = Depends(get_current_user),
                         db: Session = Depends(get_db)):
 

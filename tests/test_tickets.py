@@ -48,7 +48,11 @@ def test_create_ticket(db,user,user_auth_header):
     db.delete(ticket_id)
     db.commit()
 
+def test_invalid_view_ticket(user_auth_header,create_ticket):
+    response = client.get(f"/tickets/{9999999}",
+                          headers=user_auth_header)
 
+    assert response.status_code == 404
 
 def test_view_ticket(user_auth_header,create_ticket):
 
@@ -56,6 +60,24 @@ def test_view_ticket(user_auth_header,create_ticket):
                           headers=user_auth_header)
 
     assert response.status_code == 200
+
+
+def test_view_tickets(user_auth_header,create_ticket):
+
+    response = client.get(f"/tickets",
+                          params={"title" : "test",
+                                  "offset" : 0,
+                                  "limit" : 30},
+                          headers=user_auth_header)
+
+    assert response.status_code == 200
+
+def test_invalid_view_tickets(user_auth_header):
+    response = client.get(f"/tickets",
+                          params={"title" : "random-title"},
+                          headers=user_auth_header)
+
+    assert response.status_code == 404
 
 
 
@@ -68,7 +90,7 @@ def test_update_ticket(user_auth_header,create_ticket):
                                 "status" : "pending"})
 
     assert response.status_code == 200
-
+    assert len(response.json()) > 0
 
 
 
