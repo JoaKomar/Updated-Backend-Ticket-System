@@ -1,174 +1,230 @@
-Ticket System API
+# Ticket System API
 
-REST API for managing support tickets, built with FastAPI, SQLAlchemy and PostgreSQL. It includes JWT authentication, role-based authorization (user and admin), comments on tickets, soft delete, database migrations with Alembic, a Docker setup and automated tests with Pytest.
+REST API for managing support tickets, built with **Python, FastAPI, SQLAlchemy and PostgreSQL**.
 
-This is the updated version of my first project, Backend-Ticket-System.
+The application allows users to register, log in, create and manage tickets, add comments, and control access through JWT authentication and role-based authorization.
 
-Features
-User registration and login, with passwords hashed using bcrypt.
-JWT authentication (Bearer token).
-Role-based authorization:
-user: creates tickets, views and edits their own tickets, and comments on them.
-admin: has access to every ticket and comment, and can delete them.
-Ticket CRUD with statuses: pending, in_process and completed.
-Comments attached to each ticket.
-Soft delete: deleted tickets and comments are kept in the database and flagged as deleted.
-Input validation with Pydantic.
-Consistent HTTP error responses (401, 403, 404, 409, 422).
-Database migrations with Alembic.
-One-command setup with Docker Compose.
-Automatic interactive documentation with Swagger UI (/docs).
-Automated tests with Pytest.
-Tech stack
-Area	Tools
-Language	Python
-Framework	FastAPI
-Database	PostgreSQL
-ORM and migrations	SQLAlchemy, Alembic
-Authentication	JWT (python-jose), bcrypt
-Validation	Pydantic
-Containers	Docker, Docker Compose
-Testing	Pytest, HTTPX (TestClient)
-Project structure
+This is an updated version of my first project, **Backend-Ticket-System**.
+
+## Features
+
+- User registration and login.
+- JWT authentication (Bearer Token).
+- Password hashing with bcrypt.
+- Role-based authorization: `user` and `admin`.
+- Ticket creation, retrieval, updating and soft deletion.
+- Comments associated with tickets.
+- Soft deletion for tickets and comments.
+- Input validation with Pydantic.
+- Ticket filtering by title.
+- Pagination using `offset` and `limit`.
+- HTTP error handling.
+- Interactive API documentation with Swagger UI.
+- PostgreSQL configuration using Docker Compose.
+- Automated tests with Pytest.
+
+## Tech Stack
+
+| Area | Technology |
+|---|---|
+| Language | Python |
+| Framework | FastAPI |
+| Database | PostgreSQL |
+| ORM | SQLAlchemy |
+| Authentication | JWT (python-jose) |
+| Password hashing | bcrypt |
+| Validation | Pydantic |
+| Containers | Docker and Docker Compose |
+| Testing | Pytest and HTTPX |
+
+## Project Structure
+
+```text
 .
-├── alembic/             # Migration environment and versions
 ├── app/
-│   ├── auth/            # JWT, password hashing and auth dependencies
-│   ├── config/          # Settings and environment variables
-│   ├── database/        # Database engine and session
-│   ├── exceptions/      # Custom exceptions
-│   ├── models/          # SQLAlchemy models (users, tickets, comments)
-│   ├── routers/         # Endpoints (auth, tickets, comments)
-│   ├── schemas/         # Pydantic schemas
-│   ├── services/        # Reusable business logic
-│   └── main.py          # Application entry point
-├── tests/               # Pytest tests
-├── alembic.ini
-├── docker-compose.yml
+│   ├── auth/          # Authentication and JWT
+│   ├── config/        # Environment variables
+│   ├── database/     # Database connection and sessions
+│   ├── exceptions/   # Custom exceptions
+│   ├── models/       # SQLAlchemy models
+│   ├── routers/      # API endpoints
+│   ├── schemas/      # Pydantic schemas
+│   ├── services/     # Reusable business logic
+│   └── main.py       # Application entry point
+├── tests/             # Automated tests
+├── .env.example
+├── .gitignore
+├── compose.yaml
 ├── Dockerfile
-├── requirements.txt
-└── .env.example
-Getting started
+└── requirements.txt
+```
 
-Clone the repository first:
+## Getting Started
 
-bash
+### Option 1: Docker Compose (recommended)
+
+Requirements:
+- Docker
+- Docker Compose
+
+Clone the repository:
+
+```bash
 git clone https://github.com/JoaKomar/Updated-Backend-Ticket-System.git
 cd Updated-Backend-Ticket-System
-Option 1: Docker (recommended)
+```
 
-Requirements: Docker and Docker Compose.
+Create the environment file:
 
-Create your .env file from the example and set your own values:
-bash
+```bash
 cp .env.example .env
+```
 
-To generate a secure secret key:
+Before starting the application, configure the environment variables and replace the example values with your own.
 
-bash
-python -c "import secrets; print(secrets.token_hex(32))"
 Build and start the containers:
-bash
+
+```bash
 docker compose up --build
+```
 
-This starts PostgreSQL and the API. Migrations are applied automatically when the API container starts.
+This starts PostgreSQL and the API.
 
-Open the interactive docs at http://localhost:8000/docs.
+Interactive API documentation:
 
-To stop everything, run docker compose down (add -v to also delete the database volume).
+http://localhost:8000/docs
 
-Option 2: Local setup
+Stop the containers:
 
-Requirements: Python 3.10 or higher and PostgreSQL.
+```bash
+docker compose down
+```
 
-Create and activate a virtual environment:
-bash
+To also remove the persistent PostgreSQL data volume:
+
+```bash
+docker compose down -v
+```
+
+**Warning:** the last command deletes the database volume and its stored data.
+
+### Option 2: Local Setup
+
+Requirements:
+- Python 3.12
+- PostgreSQL
+
+Create a virtual environment:
+
+```bash
 python -m venv venv
+```
 
-# Linux / macOS
+Activate it on Linux/macOS:
+
+```bash
 source venv/bin/activate
+```
 
-# Windows
+On Windows:
+
+```bash
 venv\Scripts\activate
-Install the dependencies:
-bash
+```
+
+Install dependencies:
+
+```bash
 pip install -r requirements.txt
-Create a PostgreSQL database (for example, ticket_system).
-Create your .env file and set DATABASE_URL to your local database:
-bash
+```
+
+Create a PostgreSQL database and configure the `.env` file:
+
+```bash
 cp .env.example .env
-Apply the database migrations:
-bash
-alembic upgrade head
-Start the server:
-bash
+```
+
+Set `DATABASE_URL` to your local PostgreSQL connection string.
+
+Start the application:
+
+```bash
 uvicorn app.main:app --reload
-Open the interactive docs at http://127.0.0.1:8000/docs.
-Environment variables
-Variable	Description
-DATABASE_URL	PostgreSQL connection string used by the API
-ALGORITHM	JWT signing algorithm (for example, HS256)
-SECRET_KEY_TOKEN	Secret key used to sign tokens. Keep it private
-POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB	Credentials for the PostgreSQL container (Docker only)
+```
 
-Never commit your real .env file.
+Interactive API documentation:
 
-Database migrations
+http://127.0.0.1:8000/docs
 
-Migrations are managed with Alembic:
+## Environment Variables
 
-bash
-# Apply all pending migrations
-alembic upgrade head
+| Variable | Description |
+|---|---|
+| `DATABASE_URL` | PostgreSQL connection string |
+| `ALGORITHM` | Algorithm used to sign JWTs |
+| `SECRET_KEY_TOKEN` | Secret key used to sign tokens |
+| `POSTGRES_USER` | PostgreSQL username for Docker |
+| `POSTGRES_PASSWORD` | PostgreSQL password for Docker |
+| `POSTGRES_DB` | PostgreSQL database name for Docker |
 
-# Create a new migration after changing the models
-alembic revision --autogenerate -m "describe your change"
+Never commit your real `.env` file. Use `.env.example` as a template.
 
-# Revert the last migration
-alembic downgrade -1
-Trying the API with Swagger
-Register a user with POST /auth/register.
-Log in with POST /auth/login and copy the access_token value.
-Click Authorize, paste the token (without typing "Bearer") and confirm.
-You can now call the protected endpoints.
+## API Endpoints
 
-To try the admin routes, change a user's role directly in the database:
+### Authentication
 
-sql
-UPDATE users SET role = 'admin' WHERE email = 'you@example.com';
-Endpoints
-Authentication
-Method	Route	Description	Access
-POST	/auth/register	Register a user	Public
-POST	/auth/login	Log in and get an access token	Public
-Tickets
-Method	Route	Description	Access
-GET	/tickets/me	Get the authenticated user's profile	User
-POST	/tickets/create	Create a ticket	User
-GET	/tickets/{ticket_id}	Get a ticket	Owner or admin
-PUT	/tickets/{ticket_id}	Update a ticket	Owner or admin
-DELETE	/tickets/{ticket_id}	Delete a ticket (soft delete)	Admin
-Comments
-Method	Route	Description	Access
-POST	/comments/create/{ticket_id}	Comment on a ticket	Ticket owner or admin
-GET	/comments/{comment_id}	Get a comment	Ticket owner or admin
-PUT	/comments/{comment_id}	Edit a comment	Author or admin
-DELETE	/comments/{comment_id}	Delete a comment (soft delete)	Admin
-Running the tests
+| Method | Route | Description | Access |
+|---|---|---|---|
+| POST | `/auth/register` | Register a user | Public |
+| POST | `/auth/login` | Log in | Public |
 
-With the local setup active and the migrations applied:
+### Tickets
 
-bash
-pip install pytest httpx
-pytest
+| Method | Route | Description | Access |
+|---|---|---|---|
+| GET | `/tickets/me` | Get own profile | Authenticated user |
+| POST | `/tickets/create` | Create a ticket | Authenticated user |
+| GET | `/tickets/` | List tickets | Authenticated user |
+| GET | `/tickets/{ticket_id}` | Retrieve a ticket | Owner or admin |
+| PUT | `/tickets/{ticket_id}` | Update a ticket | Owner or admin |
+| DELETE | `/tickets/{ticket_id}` | Soft-delete a ticket | Admin |
 
-The tests run against the database defined in DATABASE_URL, so point it to a dedicated test database.
+The ticket listing supports the `title`, `offset` and `limit` query parameters.
 
-Roadmap
-[ ] Ticket listing with pagination and filters
-[ ] More permission and comment tests
-[ ] Continuous integration with GitHub Actions
-[ ] Deployment
-Author
+### Comments
 
-Joaquín — @JoaKomar
+| Method | Route | Description | Access |
+|---|---|---|---|
+| POST | `/comments/create/{ticket_id}` | Create a comment | Ticket owner or admin |
+| GET | `/comments/{comment_id}` | Retrieve a comment | Ticket owner or admin |
+| PUT | `/comments/{comment_id}` | Update a comment | Author or admin |
+| DELETE | `/comments/{comment_id}` | Soft-delete a comment | Admin |
+
+## Authentication
+
+The API uses JWT to protect private endpoints.
+
+To test the API through Swagger:
+
+1. Register a user using `POST /auth/register`.
+2. Log in using `POST /auth/login`.
+3. Copy the `access_token` value.
+4. Click the **Authorize** button in Swagger.
+5. Enter the token and confirm.
+
+Once authenticated, you can access protected endpoints according to your user role and permissions.
+
+## Testing
+
+Run the automated tests with Pytest:
+
+```bash
+python -m pytest -v
+```
+
+A dedicated test database should be configured through `DATABASE_URL` to prevent tests from modifying development data.
+
+## Author
+
+**Joaquín**  
+GitHub: [@JoaKomar](https://github.com/JoaKomar)
