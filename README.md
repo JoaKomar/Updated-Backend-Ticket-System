@@ -23,6 +23,22 @@ This is an updated version of my first project, **Backend-Ticket-System**.
 - PostgreSQL configuration using Docker Compose.
 - Automated tests with Pytest.
 
+## Access Control
+
+The API implements role-based access control:
+
+| Action | User | Admin |
+|---|---|---|
+| View own tickets | Yes | Yes |
+| View other users' tickets | No | Yes |
+| View soft-deleted tickets | No | Yes |
+| View deleted tickets belonging to other users | No | Yes |
+| Create tickets | Yes | Yes |
+| Update tickets | Own tickets | All tickets |
+| Delete tickets | No | Yes |
+
+Users can only access their own tickets. Administrators have access to all tickets, including those that have been soft-deleted.
+
 ## Tech Stack
 
 | Area | Technology |
@@ -61,11 +77,12 @@ This is an updated version of my first project, **Backend-Ticket-System**.
 
 ## Getting Started
 
-### Option 1: Docker Compose (recommended)
+### Requirements
 
-Requirements:
 - Docker
 - Docker Compose
+
+### Docker Compose Setup
 
 Clone the repository:
 
@@ -80,7 +97,7 @@ Create the environment file:
 cp .env.example .env
 ```
 
-Before starting the application, configure the environment variables and replace the example values with your own.
+Configure the environment variables in `.env`. Replace the example values with your own credentials and secret key.
 
 Build and start the containers:
 
@@ -88,13 +105,13 @@ Build and start the containers:
 docker compose up --build
 ```
 
-This starts PostgreSQL and the API.
+This starts the PostgreSQL database and the API.
 
-Interactive API documentation:
+The interactive API documentation will be available at:
 
 http://localhost:8000/docs
 
-Stop the containers:
+To stop the containers:
 
 ```bash
 docker compose down
@@ -106,11 +123,12 @@ To also remove the persistent PostgreSQL data volume:
 docker compose down -v
 ```
 
-**Warning:** the last command deletes the database volume and its stored data.
+**Warning:** This command deletes the database volume and all stored data.
 
-### Option 2: Local Setup
+## Local Setup
 
-Requirements:
+### Requirements
+
 - Python 3.12
 - PostgreSQL
 
@@ -138,13 +156,13 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
-Create a PostgreSQL database and configure the `.env` file:
+Create the environment file:
 
 ```bash
 cp .env.example .env
 ```
 
-Set `DATABASE_URL` to your local PostgreSQL connection string.
+Configure `DATABASE_URL` with your local PostgreSQL connection string.
 
 Start the application:
 
@@ -152,7 +170,7 @@ Start the application:
 uvicorn app.main:app --reload
 ```
 
-Interactive API documentation:
+The interactive API documentation will be available at:
 
 http://127.0.0.1:8000/docs
 
@@ -167,7 +185,7 @@ http://127.0.0.1:8000/docs
 | `POSTGRES_PASSWORD` | PostgreSQL password for Docker |
 | `POSTGRES_DB` | PostgreSQL database name for Docker |
 
-Never commit your real `.env` file. Use `.env.example` as a template.
+Never commit your actual `.env` file. Use `.env.example` as a template.
 
 ## API Endpoints
 
@@ -189,7 +207,13 @@ Never commit your real `.env` file. Use `.env.example` as a template.
 | PUT | `/tickets/{ticket_id}` | Update a ticket | Owner or admin |
 | DELETE | `/tickets/{ticket_id}` | Soft-delete a ticket | Admin |
 
-The ticket listing supports the `title`, `offset` and `limit` query parameters.
+The ticket listing supports the following query parameters:
+
+- `title`: Filter tickets by title.
+- `offset`: Number of records to skip.
+- `limit`: Maximum number of records to return.
+
+Administrators can access all tickets, including soft-deleted records. Regular users can only access their own tickets.
 
 ### Comments
 
@@ -204,27 +228,32 @@ The ticket listing supports the `title`, `offset` and `limit` query parameters.
 
 The API uses JWT to protect private endpoints.
 
-To test the API through Swagger:
+To authenticate through Swagger UI:
 
 1. Register a user using `POST /auth/register`.
 2. Log in using `POST /auth/login`.
 3. Copy the `access_token` value.
-4. Click the **Authorize** button in Swagger.
+4. Click the **Authorize** button in Swagger UI.
 5. Enter the token and confirm.
 
-Once authenticated, you can access protected endpoints according to your user role and permissions.
+Once authenticated, users can access protected endpoints according to their roles and permissions.
 
 ## Testing
 
-Run the automated tests with Pytest:
+The project includes automated tests using Pytest.
+
+Run the test suite:
 
 ```bash
 python -m pytest -v
 ```
 
-A dedicated test database should be configured through `DATABASE_URL` to prevent tests from modifying development data.
+All current tests pass.
+
+A dedicated test database is recommended to prevent tests from modifying development data.
 
 ## Author
 
-**Joaquín**  
+**Joaquín**
+
 GitHub: [@JoaKomar](https://github.com/JoaKomar)
