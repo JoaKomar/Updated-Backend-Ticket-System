@@ -23,10 +23,10 @@ def list_tickets(db: Session,user: Users,title: str | None = None, offset: int =
     query = db.query(Tickets).filter(Tickets.deleted.is_(False))
 
     if user.role != "admin":
-        query = db.query(Tickets).filter(Tickets.user_id == user.id)
+        query = query.filter(Tickets.user_id == user.id)
 
     if title:
-        query = db.query(Tickets).filter(Tickets.title.ilike(f"%{title}%"))
+        query = query.filter(Tickets.title.ilike(f"%{title}%"))
 
     return query.order_by(Tickets.id).offset(offset).limit(limit).all()
 
